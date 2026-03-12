@@ -432,6 +432,23 @@ footer {
     background: rgba(255,255,255,0.05);
 }
 
+/* Estado activo/actual en la cadena */
+.evo-step.current-evo {
+    background: rgba(59, 130, 246, 0.2);
+    border: 1px solid rgba(59, 130, 246, 0.5);
+    box-shadow: 0 0 15px rgba(59, 130, 246, 0.3);
+    cursor: default;
+}
+
+.evo-step.current-evo:hover {
+    background: rgba(59, 130, 246, 0.2);
+}
+
+.evo-step.current-evo .evo-name {
+    color: #60a5fa;
+    font-weight: 700;
+}
+
 .evo-step img {
     width: 60px;
     height: 60px;

@@ -249,17 +249,24 @@ function renderEvolutions(chain) {
     
     const evolutionsList = [];
     
-    // Función recursiva plana para extraer toda la línea principal (ignora ramas complejas como Eevee por simplicidad en esta app, mostrando solo 1 camino)
-    let currentChain = chain;
-    while(currentChain) {
-        evolutionsList.push(currentChain.species.name);
-        currentChain = currentChain.evolves_to[0]; // Tomar siempre la primera evolución disponible
+    // Función recursiva para extraer toda la línea principal (maneja en orden la API)
+    function extractEvolutions(node) {
+        if (!node) return;
+        evolutionsList.push(node.species.name);
+        if (node.evolves_to && node.evolves_to.length > 0) {
+            extractEvolutions(node.evolves_to[0]); // Toma la primera rama
+        }
     }
+    
+    extractEvolutions(chain);
 
     if(evolutionsList.length <= 1) {
         container.innerHTML = '<span class="history-label">No tiene evoluciones</span>';
         return;
     }
+
+    // Identificar el pokemon actual para destacarlo
+    const currentName = currentPokemonData.name.toLowerCase();
 
     evolutionsList.forEach((evoName, index) => {
         // Fetch sprite básico para la evolución miniatura
@@ -268,16 +275,27 @@ function renderEvolutions(chain) {
             .then(data => {
                 const stepDiv = document.createElement('div');
                 stepDiv.className = 'evo-step';
-                stepDiv.title = 'Click para ver más';
-                stepDiv.onclick = () => {
-                    searchInput.value = evoName;
-                    triggerSearch(evoName);
-                };
+                
+                // Aplicar clase especial si es el actual
+                if (evoName === currentName) {
+                    stepDiv.classList.add('current-evo');
+                    stepDiv.title = 'Estás viendo este Pokémon';
+                } else {
+                    stepDiv.title = 'Click para buscar';
+                    stepDiv.onclick = () => {
+                        searchInput.value = evoName;
+                        triggerSearch(evoName);
+                    };
+                }
                 
                 stepDiv.innerHTML = `
                     <img src="${data.sprites.front_default || data.sprites.other['official-artwork'].front_default}" alt="${evoName}">
                     <span class="evo-name">${evoName}</span>
                 `;
+                
+                // Como las promesas pueden resolverse en distinto orden, 
+                // insertamos en la posición correcta usando order de CSS Flexbox
+                stepDiv.style.order = index * 2;
                 
                 container.appendChild(stepDiv);
                 
@@ -286,6 +304,7 @@ function renderEvolutions(chain) {
                     const arrowSpan = document.createElement('span');
                     arrowSpan.className = 'evo-arrow';
                     arrowSpan.innerHTML = '➔';
+                    arrowSpan.style.order = (index * 2) + 1; // La flecha siempre va después del item
                     container.appendChild(arrowSpan);
                 }
             });
