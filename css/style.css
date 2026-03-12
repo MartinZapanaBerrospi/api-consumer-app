@@ -49,10 +49,10 @@ body {
 
 .app-container {
     width: 100%;
-    max-width: 500px;
+    max-width: 650px;
     background-color: var(--card-bg);
     border-radius: 20px;
-    padding: 2rem;
+    padding: 2.5rem;
     box-shadow: 0 20px 40px rgba(0,0,0,0.4);
     border: 1px solid var(--border);
 }
@@ -132,6 +132,14 @@ button {
 button.btn-secondary {
     background-color: rgba(255,255,255,0.1);
     border: 1px solid rgba(255,255,255,0.2);
+}
+
+button.icon-btn-large {
+    padding: 0.8rem;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    aspect-ratio: 1 / 1;
 }
 
 button.btn-secondary:hover {
