@@ -9,12 +9,14 @@ const btnSound = document.getElementById('btn-sound');
 const btnShiny = document.getElementById('btn-shiny');
 const historyContainer = document.getElementById('history-container');
 const historyTags = document.getElementById('history-tags');
+const suggestionsList = document.getElementById('suggestions-list');
 
 // Estado Global de la App
 let currentPokemonData = null;
 let isShiny = false;
 let currentAudio = null;
 let searchHistory = JSON.parse(localStorage.getItem('pokeHistory')) || [];
+let allPokemonList = []; 
 
 // API URLs
 const API_BASE = 'https://pokeapi.co/api/v2';
@@ -24,11 +26,28 @@ const API_BASE = 'https://pokeapi.co/api/v2';
 // ----------------------------------------------------
 document.addEventListener('DOMContentLoaded', () => {
     updateHistoryUI();
+    fetchAllPokemon();
     
     // Búsqueda por botón o Enter
     searchBtn.addEventListener('click', () => triggerSearch());
-    searchInput.addEventListener('keypress', (e) => {
-        if (e.key === 'Enter') triggerSearch();
+    
+    // Manejo del Input para Autocompletado
+    searchInput.addEventListener('input', handleAutocomplete);
+    
+    // Detectar Enter o navegación por teclado en sugerencias
+    searchInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            suggestionsList.classList.add('hidden');
+            triggerSearch();
+        }
+    });
+
+    // Cerrar sugerencias al hacer click fuera
+    document.addEventListener('click', (e) => {
+        if (!searchInput.contains(e.target) && !suggestionsList.contains(e.target)) {
+            suggestionsList.classList.add('hidden');
+        }
     });
 
     // Toggle Shiny
@@ -41,8 +60,74 @@ document.addEventListener('DOMContentLoaded', () => {
     triggerSearch('pikachu', false);
 });
 
+// ----------------------------------------------------
+// Funcionalidad Autocompletado Predictivo
+// ----------------------------------------------------
+
+// Descargar los Pokemon la primera vez y guardarlos en memoria
+async function fetchAllPokemon() {
+    try {
+        const response = await fetch(`${API_BASE}/pokemon?limit=10000`);
+        const data = await response.json();
+        // Guardamos nombre y extraemos el ID directamente de la URL para optimizar
+        allPokemonList = data.results.map(pokemon => {
+            const urlParts = pokemon.url.split('/');
+            const id = urlParts[urlParts.length - 2];
+            return {
+                name: pokemon.name,
+                id: parseInt(id) // Útil por si usuario escribe números
+            };
+        });
+    } catch (error) {
+        console.error("No se pudo cargar la lista de autocompletado", error);
+    }
+}
+
+function handleAutocomplete(e) {
+    const value = e.target.value.toLowerCase().trim();
+    suggestionsList.innerHTML = '';
+    
+    if (!value) {
+        suggestionsList.classList.add('hidden');
+        return;
+    }
+
+    // Filtrar Pokémon por nombre o ID exacto
+    const filtered = allPokemonList.filter(p => 
+        p.name.includes(value) || p.id.toString() === value
+    ).slice(0, 10); // Mostrar máximo 10 sugerencias para no saturar UI
+
+    if (filtered.length === 0) {
+        suggestionsList.classList.add('hidden');
+        return;
+    }
+
+    // Renderizar lista
+    filtered.forEach(pokemon => {
+        const li = document.createElement('li');
+        li.className = 'suggestion-item';
+        
+        li.innerHTML = `
+            <span>${pokemon.name}</span>
+            <span class="suggestion-id">#${pokemon.id}</span>
+        `;
+        
+        li.addEventListener('click', () => {
+            searchInput.value = pokemon.name;
+            suggestionsList.classList.add('hidden');
+            triggerSearch(pokemon.name);
+        });
+        
+        suggestionsList.appendChild(li);
+    });
+    
+    suggestionsList.classList.remove('hidden');
+}
+
 async function triggerSearch(query = null, saveToHistory = true) {
     let searchTerm = query || searchInput.value.trim().toLowerCase();
+    
+    suggestionsList.classList.add('hidden'); // Siempre ocultar al buscar
     
     if (!searchTerm) return;
     
