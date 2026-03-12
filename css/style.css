@@ -577,15 +577,31 @@ footer {
     100% { background-position: -200% 0; }
 }
 
-/* Media Queries para Responsiveness Móvil */
+/* Media Queries para Responsiveness Móvil y Tablet */
 @media (max-width: 650px) {
+    .app-container {
+        padding: 1.5rem;
+        margin: 1rem;
+        border-radius: 15px;
+        width: auto;
+    }
+
     .search-container {
-        flex-direction: column;
+        flex-wrap: wrap; 
     }
     
-    .search-container button {
-        padding: 1rem;
+    .input-wrapper {
+        min-width: 100%; 
+    }
+    
+    #search-btn {
+        flex: 1; 
         justify-content: center;
+        padding: 0.8rem;
+    }
+
+    #random-btn {
+        flex: 0 0 auto; 
     }
     
     .pokemon-info {
@@ -600,10 +616,12 @@ footer {
     .pokemon-name {
         font-size: 1.5rem;
     }
-    
+}
+
+@media (max-width: 480px) {
     .header-actions {
         position: absolute;
-        top: 2rem;
+        top: 1.5rem;
         right: 1.5rem;
     }
     
@@ -611,5 +629,22 @@ footer {
         flex-direction: column;
         align-items: flex-start;
         position: relative;
+    }
+
+    .stat-row {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.3rem;
+        position: relative;
+    }
+
+    .stat-bar-bg {
+        width: 100%; 
+    }
+    
+    .stat-val {
+        align-self: flex-end;
+        position: absolute;
+        right: 0;
     }
 }
