@@ -92,10 +92,12 @@ header a:hover {
     display: flex;
     gap: 0.5rem;
     margin-bottom: 2rem;
+    width: 100%;
 }
 
 input {
-    flex: 1;
+    width: 100%;
+    box-sizing: border-box;
     padding: 0.8rem 1rem;
     border-radius: 10px;
     border: 1px solid var(--border);
@@ -127,7 +129,16 @@ button {
     transition: background-color 0.2s ease;
 }
 
-button:hover {
+button.btn-secondary {
+    background-color: rgba(255,255,255,0.1);
+    border: 1px solid rgba(255,255,255,0.2);
+}
+
+button.btn-secondary:hover {
+    background-color: rgba(255,255,255,0.2);
+}
+
+button:hover:not(.btn-secondary) {
     background-color: var(--primary-hover);
 }
 
@@ -556,4 +567,41 @@ footer {
 @keyframes shimmer {
     0% { background-position: 200% 0; }
     100% { background-position: -200% 0; }
+}
+
+/* Media Queries para Responsiveness Móvil */
+@media (max-width: 650px) {
+    .search-container {
+        flex-direction: column;
+    }
+    
+    .search-container button {
+        padding: 1rem;
+        justify-content: center;
+    }
+    
+    .pokemon-info {
+        flex-direction: column;
+        gap: 1rem;
+    }
+    
+    #pokemon-image {
+        max-width: 200px;
+    }
+    
+    .pokemon-name {
+        font-size: 1.5rem;
+    }
+    
+    .header-actions {
+        position: absolute;
+        top: 2rem;
+        right: 1.5rem;
+    }
+    
+    .card-header {
+        flex-direction: column;
+        align-items: flex-start;
+        position: relative;
+    }
 }

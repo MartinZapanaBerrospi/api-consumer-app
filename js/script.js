@@ -10,6 +10,7 @@ const btnShiny = document.getElementById('btn-shiny');
 const historyContainer = document.getElementById('history-container');
 const historyTags = document.getElementById('history-tags');
 const suggestionsList = document.getElementById('suggestions-list');
+const btnRandom = document.getElementById('random-btn');
 
 // Estado Global de la App
 let currentPokemonData = null;
@@ -55,6 +56,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Reproducir Sonido
     btnSound.addEventListener('click', playSound);
+    
+    // Buscar Aleatorio
+    btnRandom.addEventListener('click', searchRandomPokemon);
 
     // Búsqueda por defecto
     triggerSearch('pikachu', false);
@@ -122,6 +126,13 @@ function handleAutocomplete(e) {
     });
     
     suggestionsList.classList.remove('hidden');
+}
+
+function searchRandomPokemon() {
+    // Generar un número aleatorio entre el 1 y el 1025 (Pokedex actual)
+    const randomId = Math.floor(Math.random() * 1025) + 1;
+    searchInput.value = '';
+    triggerSearch(randomId.toString());
 }
 
 async function triggerSearch(query = null, saveToHistory = true) {
