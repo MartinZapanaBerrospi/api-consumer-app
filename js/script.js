@@ -267,12 +267,20 @@ function renderEvolutions(chain) {
 
     // Identificar el pokemon actual para destacarlo
     const currentName = currentPokemonData.name.toLowerCase();
+    
+    // Crear un identificador único para este renderizado
+    // para evitar que promesas "viejas" de clicks anteriores inyecten elementos
+    const renderId = Date.now();
+    container.dataset.renderId = renderId;
 
     evolutionsList.forEach((evoName, index) => {
         // Fetch sprite básico para la evolución miniatura
         fetch(`${API_BASE}/pokemon/${evoName}`)
             .then(res => res.json())
             .then(data => {
+                // Si el usuario ya buscó otra cosa mientras cargaba, abortar
+                if (container.dataset.renderId != renderId) return;
+
                 const stepDiv = document.createElement('div');
                 stepDiv.className = 'evo-step';
                 
