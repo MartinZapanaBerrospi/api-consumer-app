@@ -4,79 +4,147 @@ const pokemonCard = document.getElementById('pokemon-card');
 const loader = document.getElementById('loader');
 const errorMessage = document.getElementById('error-message');
 
-// API Base URL
-const API_URL = 'https://pokeapi.co/api/v2/pokemon/';
+// Elementos UI Avanzados
+const btnSound = document.getElementById('btn-sound');
+const btnShiny = document.getElementById('btn-shiny');
+const historyContainer = document.getElementById('history-container');
+const historyTags = document.getElementById('history-tags');
 
-// Event Listeners
-searchBtn.addEventListener('click', searchPokemon);
-searchInput.addEventListener('keypress', (e) => {
-    if (e.key === 'Enter') {
-        searchPokemon();
-    }
+// Estado Global de la App
+let currentPokemonData = null;
+let isShiny = false;
+let currentAudio = null;
+let searchHistory = JSON.parse(localStorage.getItem('pokeHistory')) || [];
+
+// API URLs
+const API_BASE = 'https://pokeapi.co/api/v2';
+
+// ----------------------------------------------------
+// Event Listeners y Lógica Inicial
+// ----------------------------------------------------
+document.addEventListener('DOMContentLoaded', () => {
+    updateHistoryUI();
+    
+    // Búsqueda por botón o Enter
+    searchBtn.addEventListener('click', () => triggerSearch());
+    searchInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') triggerSearch();
+    });
+
+    // Toggle Shiny
+    btnShiny.addEventListener('click', toggleShiny);
+
+    // Reproducir Sonido
+    btnSound.addEventListener('click', playSound);
+
+    // Búsqueda por defecto
+    triggerSearch('pikachu', false);
 });
 
-async function searchPokemon() {
-    let query = searchInput.value.trim().toLowerCase();
+async function triggerSearch(query = null, saveToHistory = true) {
+    let searchTerm = query || searchInput.value.trim().toLowerCase();
     
-    // Si la búsqueda está vacía, buscamos a pikachu por defecto o no hacemos nada
-    if (!query) {
-        query = 'pikachu';
+    if (!searchTerm) return;
+    
+    // Reset estado
+    isShiny = false;
+    btnShiny.classList.remove('active');
+    btnSound.classList.remove('active');
+    if(currentAudio) {
+        currentAudio.pause();
+        currentAudio = null;
     }
 
-    // Ocultar resultados previos / errores y mostrar loader
+    // UI Loading State (Skeleton Loader)
     pokemonCard.classList.add('hidden');
     errorMessage.classList.add('hidden');
     loader.classList.remove('hidden');
 
     try {
-        const response = await fetch(`${API_URL}${query}`);
+        // 1. Fetch Principal: Datos básicos del Pokémon
+        const response = await fetch(`${API_BASE}/pokemon/${searchTerm}`);
+        if (!response.ok) throw new Error('Pokemon no encontrado');
         
-        if (!response.ok) {
-            throw new Error('Pokemon not found');
+        currentPokemonData = await response.json();
+        
+        // 2. Fetch de Especie (Para descripción y cadena de evolución)
+        const speciesRes = await fetch(currentPokemonData.species.url);
+        const speciesData = await speciesRes.json();
+        
+        // 3. Obtener Descripción (Flavor Text) en español (o fallback inglés)
+        let description = "Descripción no disponible.";
+        const esEntry = speciesData.flavor_text_entries.find(entry => entry.language.name === 'es');
+        const enEntry = speciesData.flavor_text_entries.find(entry => entry.language.name === 'en');
+        
+        if (esEntry) {
+            description = esEntry.flavor_text.replace(/[\f\n\r]/g, " ");
+        } else if (enEntry) {
+            description = enEntry.flavor_text.replace(/[\f\n\r]/g, " ");
         }
+
+        // 4. Fetch Cadena de Evolución
+        const evoRes = await fetch(speciesData.evolution_chain.url);
+        const evoData = await evoRes.json();
         
-        const data = await response.json();
-        updateUI(data);
+        // Render UI
+        updateMainUI(currentPokemonData, description);
+        renderEvolutions(evoData.chain);
         
+        // Actualizar Local Storage
+        if (saveToHistory) {
+            addToHistory(currentPokemonData.name);
+        }
+
     } catch (error) {
-        console.error('Error fetching data:', error);
+        console.error('Error:', error);
         loader.classList.add('hidden');
         errorMessage.classList.remove('hidden');
     }
 }
 
-function updateUI(pokemon) {
-    // 1. Ocultar Loader & Mostrar Tarjeta
+// ----------------------------------------------------
+// UI Updates Main Card
+// ----------------------------------------------------
+function updateMainUI(pokemon, description) {
     loader.classList.add('hidden');
     pokemonCard.classList.remove('hidden');
 
-    // 2. Información Básica
+    // Nombre ID y Descripción
     document.getElementById('pokemon-name').textContent = pokemon.name;
     document.getElementById('pokemon-id').textContent = `#${String(pokemon.id).padStart(3, '0')}`;
+    document.getElementById('pokemon-description').textContent = `"${description}"`;
     
-    // Imagen principal (Official Artwork)
-    const imgUrl = pokemon.sprites.other['official-artwork'].front_default || pokemon.sprites.front_default;
-    document.getElementById('pokemon-image').src = imgUrl;
+    // Imagen principal
+    updatePokemonImage();
 
-    // Altura y Peso (La API los devuelve en decímetros y hectogramos)
+    // Altura y Peso
     document.getElementById('pokemon-height').textContent = `${(pokemon.height / 10).toFixed(1)} m`;
     document.getElementById('pokemon-weight').textContent = `${(pokemon.weight / 10).toFixed(1)} kg`;
 
-    // 3. Tipos
+    // Configurar Audio (Cries en formato latest, fallback a legacy)
+    const audioUrl = pokemon.cries?.latest || pokemon.cries?.legacy;
+    if (audioUrl) {
+        currentAudio = new Audio(audioUrl);
+        currentAudio.volume = 0.5;
+        btnSound.style.display = 'flex';
+    } else {
+        btnSound.style.display = 'none';
+        currentAudio = null;
+    }
+
+    // Tipos
     const typesContainer = document.getElementById('pokemon-types');
     typesContainer.innerHTML = '';
-    
     pokemon.types.forEach(typeInfo => {
         const typeName = typeInfo.type.name;
         const span = document.createElement('span');
         span.classList.add('type-badge');
         span.textContent = typeName;
-        // Obtenemos el color directamente desde CSS si existe el mapeo, si no gris
         span.style.backgroundColor = `var(--type-${typeName}, #8b8b8b)`;
         typesContainer.appendChild(span);
     });
 
-    // 4. Estadísticas Base
+    // Barras de Stats Animadas
     const statsMap = {
         'hp': 'hp',
         'attack': 'attack',
@@ -84,42 +152,142 @@ function updateUI(pokemon) {
         'speed': 'speed'
     };
 
-    // Reseteamos barras primero para la animación
-    Object.values(statsMap).forEach(statId => {
-        document.getElementById(`stat-${statId}`).style.width = '0%';
-    });
+    Object.values(statsMap).forEach(statId => document.getElementById(`stat-${statId}`).style.width = '0%');
 
-    // Pequeño timeout para que se note la animación al rellenarse
     setTimeout(() => {
         pokemon.stats.forEach(stat => {
             const statName = stat.stat.name;
-            const baseValue = stat.base_stat;
-            
             if (statsMap[statName]) {
+                const baseValue = stat.base_stat;
                 const domId = statsMap[statName];
+                
                 document.getElementById(`val-${domId}`).textContent = baseValue;
                 
-                // Calculamos el % asumiendo que el máx stat estándar ronda los 255.
                 const percentage = Math.min((baseValue / 200) * 100, 100);
                 const barElement = document.getElementById(`stat-${domId}`);
-                
                 barElement.style.width = `${percentage}%`;
                 
-                // Color de la barra dependiendo del valor
-                if (percentage < 30) {
-                    barElement.style.backgroundColor = 'var(--error)';
-                } else if (percentage < 60) {
-                    barElement.style.backgroundColor = 'var(--type-electric)'; // Amarillo
-                } else {
-                    barElement.style.backgroundColor = 'var(--success)';
-                }
+                if (percentage < 30) barElement.style.backgroundColor = 'var(--error)';
+                else if (percentage < 60) barElement.style.backgroundColor = 'var(--type-electric)';
+                else barElement.style.backgroundColor = 'var(--success)';
             }
         });
     }, 50);
 }
 
-// Cargar a Pikachu por defecto al abrir la página
-window.onload = () => {
-    searchInput.value = 'pikachu';
-    searchPokemon();
-};
+// ----------------------------------------------------
+// Features Avanzadas (Shiny, Sonido, Historial, Evoluciones)
+// ----------------------------------------------------
+
+function toggleShiny() {
+    if (!currentPokemonData) return;
+    isShiny = !isShiny;
+    btnShiny.classList.toggle('active');
+    updatePokemonImage();
+}
+
+function updatePokemonImage() {
+    const sprites = currentPokemonData.sprites;
+    const offArtwork = sprites.other['official-artwork'];
+    const fallbackImage = sprites.front_default; // if official doesn't exist
+
+    let imgUrl = isShiny 
+        ? (offArtwork.front_shiny || sprites.front_shiny || fallbackImage)
+        : (offArtwork.front_default || fallbackImage);
+    
+    document.getElementById('pokemon-image').src = imgUrl;
+}
+
+function playSound() {
+    if (currentAudio) {
+        currentAudio.currentTime = 0; // Reiniciar
+        currentAudio.play();
+        
+        btnSound.classList.add('active');
+        currentAudio.onended = () => {
+            btnSound.classList.remove('active');
+        };
+    }
+}
+
+// Historial Local Storage
+function addToHistory(name) {
+    // Si ya existe, lo eliminamos para ponerlo primero
+    searchHistory = searchHistory.filter(item => item !== name);
+    searchHistory.unshift(name);
+    if (searchHistory.length > 5) searchHistory.pop(); // Solo top 5
+    
+    localStorage.setItem('pokeHistory', JSON.stringify(searchHistory));
+    updateHistoryUI();
+}
+
+function updateHistoryUI() {
+    historyTags.innerHTML = '';
+    
+    if (searchHistory.length === 0) {
+        historyContainer.classList.add('hidden');
+        return;
+    }
+    
+    historyContainer.classList.remove('hidden');
+    searchHistory.forEach(historyName => {
+        const tag = document.createElement('span');
+        tag.className = 'history-tag';
+        tag.textContent = historyName;
+        tag.onclick = () => {
+            searchInput.value = historyName;
+            triggerSearch(historyName);
+        };
+        historyTags.appendChild(tag);
+    });
+}
+
+// Parsear y Renderizar Árbol Evolutivo Recursivo
+function renderEvolutions(chain) {
+    const container = document.getElementById('evolutions-container');
+    container.innerHTML = '';
+    
+    const evolutionsList = [];
+    
+    // Función recursiva plana para extraer toda la línea principal (ignora ramas complejas como Eevee por simplicidad en esta app, mostrando solo 1 camino)
+    let currentChain = chain;
+    while(currentChain) {
+        evolutionsList.push(currentChain.species.name);
+        currentChain = currentChain.evolves_to[0]; // Tomar siempre la primera evolución disponible
+    }
+
+    if(evolutionsList.length <= 1) {
+        container.innerHTML = '<span class="history-label">No tiene evoluciones</span>';
+        return;
+    }
+
+    evolutionsList.forEach((evoName, index) => {
+        // Fetch sprite básico para la evolución miniatura
+        fetch(`${API_BASE}/pokemon/${evoName}`)
+            .then(res => res.json())
+            .then(data => {
+                const stepDiv = document.createElement('div');
+                stepDiv.className = 'evo-step';
+                stepDiv.title = 'Click para ver más';
+                stepDiv.onclick = () => {
+                    searchInput.value = evoName;
+                    triggerSearch(evoName);
+                };
+                
+                stepDiv.innerHTML = `
+                    <img src="${data.sprites.front_default || data.sprites.other['official-artwork'].front_default}" alt="${evoName}">
+                    <span class="evo-name">${evoName}</span>
+                `;
+                
+                container.appendChild(stepDiv);
+                
+                // Si no es el último, dibujar flechita
+                if (index < evolutionsList.length - 1) {
+                    const arrowSpan = document.createElement('span');
+                    arrowSpan.className = 'evo-arrow';
+                    arrowSpan.innerHTML = '➔';
+                    container.appendChild(arrowSpan);
+                }
+            });
+    });
+}

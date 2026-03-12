@@ -292,22 +292,7 @@ footer {
     border: 1px solid rgba(239, 68, 68, 0.2);
 }
 
-/* Loader Animation */
-.loader {
-    width: 40px;
-    height: 40px;
-    border: 4px solid rgba(255,255,255,0.1);
-    border-top-color: var(--primary);
-    border-radius: 50%;
-    animation: spin 1s linear infinite;
-    margin: 2rem auto;
-}
-
 /* Animations */
-@keyframes spin {
-    to { transform: rotate(360deg); }
-}
-
 @keyframes fadeIn {
     from { opacity: 0; transform: translateY(10px); }
     to { opacity: 1; transform: translateY(0); }
@@ -317,4 +302,197 @@ footer {
     0% { transform: translateY(0px); }
     50% { transform: translateY(-10px); }
     100% { transform: translateY(0px); }
+}
+
+/* Header Actions (Botones Shiny/Sonido) */
+.header-actions {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.icon-btn {
+    background: rgba(255,255,255,0.05);
+    color: var(--text-muted);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 8px;
+    padding: 0.4rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.icon-btn:hover {
+    background: rgba(255,255,255,0.15);
+    color: var(--text-main);
+}
+
+.icon-btn.active {
+    color: var(--type-electric);
+    background: rgba(247, 208, 44, 0.15);
+    border-color: rgba(247, 208, 44, 0.4);
+}
+
+.pokemon-name {
+    text-transform: capitalize;
+    font-size: 1.8rem;
+    text-align: center;
+    margin-bottom: 0.5rem;
+}
+
+/* Pokemon Description */
+.pokemon-description {
+    text-align: center;
+    color: var(--text-muted);
+    font-size: 0.9rem;
+    line-height: 1.5;
+    margin-bottom: 1.5rem;
+    font-style: italic;
+    background: rgba(0,0,0,0.2);
+    padding: 0.8rem;
+    border-radius: 8px;
+    border-left: 3px solid var(--primary);
+}
+
+/* Historial de búsquedas */
+.history-container {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    margin-bottom: 1.5rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid var(--border);
+    flex-wrap: wrap;
+    animation: fadeIn 0.3s ease;
+}
+
+.history-label {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+}
+
+.history-tags {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.history-tag {
+    background: rgba(59, 130, 246, 0.15);
+    color: #60a5fa;
+    border: 1px solid rgba(59, 130, 246, 0.3);
+    padding: 0.3rem 0.6rem;
+    border-radius: 12px;
+    font-size: 0.8rem;
+    cursor: pointer;
+    text-transform: capitalize;
+    transition: all 0.2s ease;
+}
+
+.history-tag:hover {
+    background: var(--primary);
+    color: white;
+}
+
+/* Evolutions */
+.evolutions-section {
+    margin-top: 1.5rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--border);
+    text-align: center;
+}
+
+.evolutions-section h3 {
+    font-size: 1rem;
+    color: var(--text-muted);
+    margin-bottom: 1rem;
+}
+
+.evolutions-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.evo-step {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.3rem;
+    cursor: pointer;
+    padding: 0.5rem;
+    border-radius: 10px;
+    transition: background 0.2s ease;
+}
+
+.evo-step:hover {
+    background: rgba(255,255,255,0.05);
+}
+
+.evo-step img {
+    width: 60px;
+    height: 60px;
+    object-fit: contain;
+    filter: drop-shadow(0 2px 5px rgba(0,0,0,0.5));
+}
+
+.evo-name {
+    font-size: 0.8rem;
+    text-transform: capitalize;
+    color: var(--text-main);
+}
+
+.evo-arrow {
+    color: var(--text-muted);
+}
+
+/* Skeleton Loader */
+.loader-skeleton {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    padding: 1.5rem;
+    background-color: rgba(15, 23, 42, 0.4);
+    border-radius: 16px;
+    border: 1px solid rgba(255,255,255,0.05);
+}
+
+.skeleton-header {
+    height: 24px;
+    width: 30%;
+    background: linear-gradient(90deg, rgba(51,65,85,0.5) 25%, rgba(51,65,85,0.8) 50%, rgba(51,65,85,0.5) 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite;
+    border-radius: 4px;
+}
+
+.skeleton-image {
+    height: 180px;
+    width: 180px;
+    margin: 0 auto;
+    border-radius: 50%;
+    background: linear-gradient(90deg, rgba(51,65,85,0.5) 25%, rgba(51,65,85,0.8) 50%, rgba(51,65,85,0.5) 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite;
+}
+
+.skeleton-text {
+    height: 16px;
+    width: 100%;
+    background: linear-gradient(90deg, rgba(51,65,85,0.5) 25%, rgba(51,65,85,0.8) 50%, rgba(51,65,85,0.5) 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite;
+    border-radius: 4px;
+}
+
+.skeleton-text.short {
+    width: 70%;
+}
+
+@keyframes shimmer {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
 }

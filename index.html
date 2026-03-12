@@ -11,12 +11,12 @@
     <div class="app-container">
         <header>
             <h1>PokéAPI Explorer</h1>
-            <p>Buscador de Pokémon en tiempo real consumiendo <a href="https://pokeapi.co/" target="_blank">PokéAPI</a></p>
+            <p>Buscador de Pokémon avanzado consumiendo <a href="https://pokeapi.co/" target="_blank">PokéAPI</a></p>
         </header>
 
         <main>
             <div class="search-container">
-                <input type="text" id="pokemon-input" placeholder="Ingresa un nombre o número (Ej. Pikachu o 25)">
+                <input type="text" id="pokemon-input" placeholder="Nombre o número (Ej. Pikachu o 25)">
                 <button id="search-btn">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <circle cx="11" cy="11" r="8"></circle>
@@ -25,21 +25,48 @@
                     Buscar
                 </button>
             </div>
+            
+            <!-- Historial de Búsquedas -->
+            <div class="history-container hidden" id="history-container">
+                <span class="history-label">Recientes:</span>
+                <div class="history-tags" id="history-tags"></div>
+            </div>
 
-            <!-- Loader -->
-            <div id="loader" class="loader hidden"></div>
+            <!-- Loader Skeleton -->
+            <div id="loader" class="loader-skeleton hidden">
+                <div class="skeleton-header"></div>
+                <div class="skeleton-image"></div>
+                <div class="skeleton-text"></div>
+                <div class="skeleton-text short"></div>
+                <div class="skeleton-text"></div>
+            </div>
 
             <!-- Error message -->
             <div id="error-message" class="error-message hidden">
-                <p>No se encontró el Pokémon. Verifica el nombre o número e intenta de nuevo.</p>
+                <p>No se encontró el Pokémon. Verifica el nombre e intenta de nuevo.</p>
             </div>
 
             <!-- Results container -->
             <div id="pokemon-card" class="pokemon-card hidden">
                 <div class="card-header">
                     <span id="pokemon-id" class="pokemon-id">#000</span>
-                    <h2 id="pokemon-name" class="pokemon-name">Nombre</h2>
+                    <div class="header-actions">
+                        <button id="btn-sound" class="icon-btn" aria-label="Reproducir grito" title="Reproducir grito">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+                                <path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path>
+                                <path d="M19.07 4.93a10 10 0 0 1 0 14.14"></path>
+                            </svg>
+                        </button>
+                        <button id="btn-shiny" class="icon-btn" aria-label="Ver versión Shiny" title="Ver versión Shiny">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+                            </svg>
+                        </button>
+                    </div>
                 </div>
+                
+                <h2 id="pokemon-name" class="pokemon-name">Nombre</h2>
                 
                 <div class="pokemon-image-container">
                     <img id="pokemon-image" src="" alt="Pokemon Image">
@@ -47,6 +74,10 @@
                 
                 <div class="pokemon-types" id="pokemon-types">
                     <!-- Tipos inyectados via JS -->
+                </div>
+                
+                <div class="pokemon-description" id="pokemon-description">
+                    <!-- Descripción inyectada via JS -->
                 </div>
                 
                 <div class="pokemon-stats">
@@ -88,6 +119,14 @@
                     <div class="info-item">
                         <span class="info-label">Peso</span>
                         <span class="info-value" id="pokemon-weight">0 kg</span>
+                    </div>
+                </div>
+                
+                <!-- Evolutions Container -->
+                <div class="evolutions-section">
+                    <h3>Cadena Evolutiva</h3>
+                    <div class="evolutions-container" id="evolutions-container">
+                        <!-- Evolutions inyectadas via JS -->
                     </div>
                 </div>
             </div>
